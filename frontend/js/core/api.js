@@ -16,7 +16,10 @@ async function peticion(metodo, url, cuerpo) {
     res = await fetch(`/api${url}`, {
       method: metodo,
       credentials: 'same-origin',
-      headers: cuerpo !== undefined ? { 'Content-Type': 'application/json' } : {},
+      headers: {
+        'X-Requested-With': 'sgp', // exigida por el servidor (protección CSRF)
+        ...(cuerpo !== undefined && { 'Content-Type': 'application/json' }),
+      },
       body: cuerpo !== undefined ? JSON.stringify(cuerpo) : undefined,
     });
   } catch {

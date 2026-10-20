@@ -8,7 +8,7 @@ import { abrirModal, confirmar } from '../components/modal.js';
 import { toast } from '../components/toast.js';
 
 const CONCEPTOS = ['Cuota de mantenimiento', 'Aportación voluntaria', 'Pago de asamblea', 'Pago de luz', 'Pago de agua', 'Faena / tequio'];
-const TAMANO = 25;
+const TAMANO = 10;
 
 export async function render(contenedor) {
   const filtro = { q: '', desde: '', hasta: '', page: 1 };
@@ -19,6 +19,7 @@ export async function render(contenedor) {
   async function cargar() {
     const r = await api.get(`/pagos${query({ ...filtro, pageSize: TAMANO })}`);
     const paginas = Math.max(1, Math.ceil(r.total / TAMANO));
+    if (!r.data.length && filtro.page > 1) { filtro.page = paginas; return cargar(); } // la página quedó vacía (p. ej. se eliminó el último registro)    
     resumen.textContent = `${r.total} pago(s) · Total: ${money(r.suma)}`;
     zona.replaceChildren(tablaDatos({
       columns: [
@@ -38,10 +39,14 @@ export async function render(contenedor) {
         session.can('pagos:eliminar') && boton('Eliminar', 'btn-danger', () => eliminar(p)),
       ],
     }));
+    const desde = r.total ? (filtro.page - 1) * TAMANO + 1 : 0;
+    const hasta = Math.min(filtro.page * TAMANO, r.total);
     paginador.replaceChildren(
-      boton('‹ Anterior', 'btn-ghost', () => { filtro.page -= 1; cargar(); }, { disabled: filtro.page <= 1 }),
-      h('span', {}, `Página ${filtro.page} de ${paginas}`),
-      boton('Siguiente ›', 'btn-ghost', () => { filtro.page += 1; cargar(); }, { disabled: filtro.page >= paginas }));
+      h('span', { class: 'pager-info' }, `Mostrando ${desde}–${hasta} de ${r.total}`),
+      h('div', { class: 'pager-botones' },
+        boton('‹ Anterior', 'btn-ghost', () => { filtro.page -= 1; cargar(); }, { disabled: filtro.page <= 1 }),
+        h('span', { class: 'pager-info' }, `Página ${filtro.page} de ${paginas}`),
+        boton('Siguiente ›', 'btn-ghost', () => { filtro.page += 1; cargar(); }, { disabled: filtro.page >= paginas })));
   }
 
   // ----- Registrar pago (valida + consulta adeudo + actualiza adeudo en el servidor) -----

@@ -29,16 +29,27 @@ export function montarLayout(root, { rutas, actual, alSalir }) {
 
   const contenido = h('main', { class: 'contenido', id: 'contenido' });
   const topbar = h('header', { class: 'topbar' },
-    h('button', { type: 'button', class: 'menu-btn', 'aria-label': 'Abrir menú', onclick: () => app.classList.toggle('nav-abierto') }, '☰'),
+    h('button', { type: 'button', class: 'menu-btn', 'aria-label': 'Abrir menú', 'aria-expanded': 'false', onclick: () => alternarMenu() }, '☰'),
     h('div', { class: 'ruta' },
       h('div', { class: 'comunidad' }, session.config ? session.config.nombre_comunidad : ''),
       h('div', { class: 'breadcrumb' }, ruta)),
     h('div', { class: 'usuario' },
       h('span', { class: 'chip' }, `${session.user.nombre_usuario} · ${session.user.rol}`), fecha));
 
-  app.append(sidebar, h('div', { class: 'principal' }, topbar, contenido));
-  // Al elegir una opción en móvil se cierra el menú
-  sidebar.addEventListener('click', (e) => { if (e.target.closest('a')) app.classList.remove('nav-abierto'); });
+  const fondo = h('div', { class: 'nav-fondo', onclick: () => alternarMenu(false) });
+  app.append(sidebar, fondo, h('div', { class: 'principal' }, topbar, contenido));
+
+  // Menú lateral en móvil: se abre con ☰ y se cierra al tocar el fondo, elegir una opción o pulsar Esc
+  function alternarMenu(abrir) {
+    const abierto = abrir === undefined ? !app.classList.contains('nav-abierto') : abrir;
+    app.classList.toggle('nav-abierto', abierto);
+    topbar.querySelector('.menu-btn').setAttribute('aria-expanded', String(abierto));
+  }
+  sidebar.addEventListener('click', (e) => { if (e.target.closest('a')) alternarMenu(false); });
+  document.addEventListener('keydown', function cerrarConEsc(e) {
+    if (!app.isConnected) return document.removeEventListener('keydown', cerrarConEsc);
+    if (e.key === 'Escape') alternarMenu(false);
+  });
 
   root.replaceChildren(app);
   return contenido;

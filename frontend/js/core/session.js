@@ -4,6 +4,7 @@ import { api } from './api.js';
 export const session = {
   user: null,
   config: null,
+  sesion: { inactividad_minutos: 15 },
 
   can(permiso) {
     return !!this.user && this.user.permisos.includes(permiso);
@@ -11,7 +12,9 @@ export const session = {
 
   async cargar() {
     try {
-      this.user = (await api.get('/auth/me')).usuario;
+      const r = await api.get('/auth/me');
+      this.user = r.usuario;
+      this.sesion = r.sesion;
       await this.cargarConfig();
     } catch {
       this.limpiar();
@@ -23,7 +26,9 @@ export const session = {
   },
 
   async iniciar(nombre_usuario, contrasena) {
-    this.user = (await api.post('/auth/login', { nombre_usuario, contrasena })).usuario;
+    const r = await api.post('/auth/login', { nombre_usuario, contrasena });
+    this.user = r.usuario;
+    this.sesion = r.sesion;
     await this.cargarConfig();
   },
 

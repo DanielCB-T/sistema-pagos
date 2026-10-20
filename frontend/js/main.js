@@ -6,12 +6,21 @@ import { RUTAS } from './routes.js';
 import { montarLayout } from './components/layout.js';
 import { render as vistaLogin } from './views/login.js';
 import { toast } from './components/toast.js';
+import { iniciarInactividad, detenerInactividad } from './core/idle.js';
 
 const raiz = document.getElementById('app');
 const irA = (ruta) => { location.hash = `#${ruta}`; };
 
 async function salir() {
+  detenerInactividad();
   await session.cerrar();
+  irA('/login');
+}
+
+// Se agotó el tiempo sin actividad: se cierra la sesión en el servidor y se pide acceso de nuevo
+async function expirarPorInactividad() {
+  await session.cerrar();
+  toast('Su sesión se cerró por inactividad. Inicie sesión de nuevo', 'error');
   irA('/login');
 }
 
@@ -23,6 +32,8 @@ async function enrutar() {
     return vistaLogin(raiz, { alIngresar: () => irA('/inicio') });
   }
   if (path === '/login') return irA('/inicio');
+
+  iniciarInactividad({ minutos: session.sesion.inactividad_minutos, alExpirar: expirarPorInactividad });
 
   const ruta = RUTAS.find((r) => r.path === path);
   if (!ruta) return irA('/inicio');
@@ -41,6 +52,7 @@ async function enrutar() {
 
 definirAlExpirarSesion(() => {
   if (!session.user) return;
+  detenerInactividad();
   session.limpiar();
   toast('Su sesión expiró. Inicie sesión de nuevo', 'error');
   irA('/login');
