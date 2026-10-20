@@ -69,6 +69,7 @@ function contrasena(valor, { requerido = true } = {}) {
   if (typeof valor !== 'string') throw bad('La contraseña no es válida');
   if (valor.length < 8) throw bad('La contraseña debe tener al menos 8 caracteres');
   if (valor.length > 72) throw bad('La contraseña no debe exceder 72 caracteres');
+  if (!/[A-Za-z]/.test(valor) || !/\d/.test(valor)) throw bad('La contraseña debe combinar letras y números');
   return valor;
 }
 

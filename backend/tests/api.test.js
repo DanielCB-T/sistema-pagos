@@ -11,7 +11,7 @@ function cliente() {
   const call = async (method, url, body) => {
     const res = await fetch(BASE + url, {
       method,
-      headers: { 'Content-Type': 'application/json', ...(cookie && { Cookie: cookie }) },
+            headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'sgp', ...(cookie && { Cookie: cookie }) },
       body: body ? JSON.stringify(body) : undefined,
     });
     const set = res.headers.getSetCookie?.()[0];

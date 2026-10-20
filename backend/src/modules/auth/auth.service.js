@@ -2,13 +2,21 @@ const bcrypt = require('bcryptjs');
 const { query } = require('../../config/db');
 const AppError = require('../../utils/AppError');
 const { perfil, firmarToken } = require('../../middlewares/auth');
+const guard = require('../../utils/loginGuard');
 
 // Hash ficticio para que el tiempo de respuesta no revele si el usuario existe
 const HASH_FALSO = bcrypt.hashSync('no-existe', 10);
 
-async function iniciarSesion(nombreUsuario, contrasena) {
+async function iniciarSesion(nombreUsuario, contrasena, ip) {
   if (typeof nombreUsuario !== 'string' || typeof contrasena !== 'string' || !nombreUsuario || !contrasena) {
     throw new AppError(400, 'Ingrese usuario y contraseña', 'VALIDACION');
+  }
+  if (nombreUsuario.length > 50 || contrasena.length > 72) {
+    throw new AppError(401, 'Usuario o contraseña incorrectos', 'CREDENCIALES');
+  }
+  const espera = guard.minutosBloqueado(nombreUsuario, ip);
+  if (espera) {
+    throw new AppError(429, `Demasiados intentos fallidos. Intente de nuevo en ${espera} minuto(s)`, 'BLOQUEO_TEMPORAL');
   }
   const { rows } = await query(
     `SELECT u.id_usuario, u.nombre_usuario, u.contrasena, u.estado, u.id_rol, r.nombre_rol
@@ -17,8 +25,12 @@ async function iniciarSesion(nombreUsuario, contrasena) {
   );
   const u = rows[0];
   const coincide = await bcrypt.compare(contrasena, u ? u.contrasena : HASH_FALSO);
-  if (!u || !coincide) throw new AppError(401, 'Usuario o contraseña incorrectos', 'CREDENCIALES');
+  if (!u || !coincide) {
+    guard.registrarFallo(nombreUsuario, ip);
+    throw new AppError(401, 'Usuario o contraseña incorrectos', 'CREDENCIALES');
+  }
   if (u.estado !== 'activo') throw new AppError(403, 'El usuario está bloqueado. Contacte al administrador', 'BLOQUEADO');
+  guard.registrarExito(nombreUsuario, ip);
   return { usuario: perfil(u), token: firmarToken(u.id_usuario) };
 }
 

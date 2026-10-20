@@ -17,7 +17,12 @@ module.exports = {
     user: process.env.PGUSER || 'postgres',
     password: process.env.PGPASSWORD || '',
   },
-  jwt: { secret, sessionHours: Number(process.env.SESSION_HOURS) || 8 },
+    jwt: {
+    secret,
+    sessionHours: Number(process.env.SESSION_HOURS) || 8,      // duración máxima absoluta de una sesión
+    idleMinutes: Number(process.env.IDLE_MINUTES) || 15,       // cierre por inactividad
+  },
+  trustProxy: process.env.TRUST_PROXY || '',                   // ej. "1" si hay un proxy inverso (nginx)
   cookieSecure: process.env.COOKIE_SECURE === 'true',
   loginMaxAttempts: Number(process.env.LOGIN_MAX_ATTEMPTS) || 10,
 };

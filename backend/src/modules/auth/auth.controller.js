@@ -1,11 +1,11 @@
 const asyncHandler = require('../../utils/asyncHandler');
 const service = require('./auth.service');
-const { COOKIE, opcionesCookie } = require('../../middlewares/auth');
+const { COOKIE, opcionesCookie, infoSesion } = require('../../middlewares/auth');
 
 exports.login = asyncHandler(async (req, res) => {
-  const { usuario, token } = await service.iniciarSesion(req.body.nombre_usuario, req.body.contrasena);
+  const { usuario, token } = await service.iniciarSesion(req.body.nombre_usuario, req.body.contrasena, req.ip);
   res.cookie(COOKIE, token, opcionesCookie());
-  res.json({ usuario });
+  res.json({ usuario, sesion: infoSesion() });
 });
 
 exports.logout = (req, res) => {
@@ -13,4 +13,5 @@ exports.logout = (req, res) => {
   res.status(204).end();
 };
 
-exports.me = (req, res) => res.json({ usuario: req.user });
+// También sirve como "latido": al ser una ruta autenticada, renueva la sesión deslizante
+exports.me = (req, res) => res.json({ usuario: req.user, sesion: infoSesion() });

@@ -7,7 +7,8 @@ const likePattern = (q) => `%${String(q).trim().replace(/[\\%_]/g, '\\$&')}%`;
 // Paginación validada (límite duro de 100 por página)
 function paginacion({ page, pageSize } = {}) {
   const p = page ? entero(page, 'page') : 1;
-  const size = Math.min(pageSize ? entero(pageSize, 'pageSize') : 25, 100);
+  // antes:  ... : 25, 100)
+const size = Math.min(pageSize ? entero(pageSize, 'pageSize') : 10, 100);
   return { page: p, pageSize: size, limit: size, offset: (p - 1) * size };
 }
 
