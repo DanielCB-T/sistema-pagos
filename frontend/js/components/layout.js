@@ -5,17 +5,26 @@ import { fechaHoraLarga } from '../core/format.js';
 
 let reloj = null;
 
-// Iconos por ruta
+// Iconos por ruta: se usan las imágenes correspondientes en /img (el emoji de configuración se deja tal cual)
 const ICONOS = {
-  '/inicio':       '🏠',
-  '/pagos':        '💳',
-  '/adeudos':      '📋',
-  '/reportes':     '📊',
-  '/habitantes':   '👥',
-  '/usuarios':     '👤',
-  '/roles':        '🛡️',
-  '/configuracion':'⚙️',
+  '/inicio':        '/img/inicio.svg',
+  '/pagos':         '/img/pagos.svg',
+  '/adeudos':       '/img/adeudos.svg',
+  '/reportes':      '/img/reporte.svg',
+  '/habitantes':    '/img/habitante.svg',
+  '/usuarios':      '/img/persona.svg',
+  '/roles':         '/img/roles.svg',
+  '/configuracion': '⚙️',
 };
+
+function renderIcono(path) {
+  const icon = ICONOS[path];
+  if (!icon) return h('span', { class: 'nav-icon' }, '•');
+  if (icon.startsWith('/img/')) {
+    return h('img', { src: icon, class: 'nav-img', alt: '' });
+  }
+  return h('span', { class: 'nav-icon' }, icon);
+}
 
 export function montarLayout(root, { rutas, actual, alSalir }) {
   if (reloj) clearInterval(reloj);
@@ -30,7 +39,7 @@ export function montarLayout(root, { rutas, actual, alSalir }) {
       class: `nav-link${r.path === actual.path ? ' activo' : ''}`,
       'aria-current': r.path === actual.path ? 'page' : undefined,
     },
-    h('span', { class: 'nav-icon' }, ICONOS[r.path] || '•'),
+    renderIcono(r.path),
     r.titulo));
 
   const app = h('div', { class: 'app' });
@@ -49,7 +58,7 @@ export function montarLayout(root, { rutas, actual, alSalir }) {
   }
   footerItems.push(
     h('button', { type: 'button', class: 'btn-salir', onclick: alSalir },
-      '🚪 Cerrar sesión'));
+      'Cerrar sesión'));
 
   const sidebar = h('aside', { class: 'sidebar' },
     h('a', { href: '#/inicio', class: 'sidebar-header' },
@@ -65,21 +74,16 @@ export function montarLayout(root, { rutas, actual, alSalir }) {
   const fecha = h('span', { class: 'fecha' }, fechaHoraLarga());
   reloj = setInterval(() => { fecha.textContent = fechaHoraLarga(); }, 30000);
 
-  // Breadcrumb: logo clickable en lugar de texto "Menú principal"
-  const ruta = actual.path === '/inicio'
-    ? h('span', {}, 'Menú principal')
-    : h('span', {}, h('a', { href: '#/inicio' }, 'Inicio'), ' › ', h('strong', {}, actual.titulo));
-
   const contenido = h('main', { class: 'contenido', id: 'contenido' });
 
   const topbar = h('header', { class: 'topbar' },
     h('button', { type: 'button', class: 'menu-btn', 'aria-label': 'Abrir menú', 'aria-expanded': 'false', onclick: () => alternarMenu() }, '☰'),
-    // Logo clickable que lleva al inicio (reemplaza el botón de menú principal)
+    // Logo redondo clickable que lleva al inicio
     h('a', { href: '#/inicio', class: 'topbar-logo', title: 'Ir al inicio' },
       h('img', { src: '/img/logo.svg', alt: 'Logo asamblea' })),
     h('div', { class: 'ruta' },
       h('div', { class: 'comunidad' }, session.config ? session.config.nombre_comunidad : ''),
-      h('div', { class: 'breadcrumb' }, ruta)),
+      h('div', { class: 'breadcrumb' }, h('strong', {}, actual.titulo))),
     h('div', { class: 'usuario' },
       h('span', { class: 'chip' }, `${session.user.nombre_usuario} · ${session.user.rol}`), fecha));
 

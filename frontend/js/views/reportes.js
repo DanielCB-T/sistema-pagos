@@ -9,9 +9,9 @@ import { swalOk, swalError } from '../core/swal.js';
 
 // Debe coincidir con los builders del backend (reportes.builders.js)
 const TIPOS = [
-  { value: 'pagos',      label: 'Pagos por periodo',         periodo: true,  icono: '💳' },
-  { value: 'adeudos',    label: 'Adeudos (estado actual)',   periodo: false, icono: '📋' },
-  { value: 'habitantes', label: 'Habitantes (pagos y saldos)', periodo: false, icono: '👥' },
+  { value: 'pagos',      label: 'Pagos por periodo',            periodo: true },
+  { value: 'adeudos',    label: 'Adeudos (estado actual)',      periodo: false },
+  { value: 'habitantes', label: 'Habitantes (pagos y saldos)', periodo: false },
 ];
 const etiquetaTipo = (t) => (TIPOS.find((x) => x.value === t) || { label: t }).label;
 
@@ -21,25 +21,21 @@ const celda = (valor, tipo) =>
 export async function render(contenedor) {
   const historial = h('div');
 
-  // Muestra el detalle de un reporte en modal
+  // Muestra el reporte en una ventana modal en lugar de la misma página
   function mostrarEnModal(datos) {
     const { reporte, titulo, columnas, filas, resumen } = datos;
     const periodo = reporte.fecha_inicio
       ? ` · ${fecha(reporte.fecha_inicio)} al ${fecha(reporte.fecha_fin)}`
       : '';
 
-    const contenidoModal = h('div', { class: 'modal-reporte' },
-      h('p', { class: 'muted', style: 'margin-top:-.25rem' },
+    const contenidoModal = h('div', { class: 'reporte-modal-body' },
+      h('p', { class: 'muted', style: 'margin-top:-.25rem;margin-bottom:1rem' },
         `Generado el ${fecha(reporte.fecha_generacion)} por ${reporte.generado_por}${periodo}`),
-      h('div', { class: 'chips' },
-        resumen.map((r) => h('span', { class: 'chip chip-grande' },
-          `${r.label}: `, h('strong', {}, celda(r.valor, r.tipo))))),
-      h('div', { class: 'toolbar no-print', style: 'margin-top:.5rem' },
-        session.can('reportes:exportar') && h('a', {
-          class: 'btn btn-ok',
-          href: `/api/reportes/${reporte.id_reporte}/csv`,
-        }, '📥 Exportar CSV'),
-        h('button', { type: 'button', class: 'btn btn-warn', onclick: () => window.print() }, '🖨 Imprimir')),
+      h('div', { class: 'chips', style: 'margin-bottom:1rem' },
+        resumen.map((r) => h('span', { class: 'chip chip-grande' }, `${r.label}: `, h('strong', {}, celda(r.valor, r.tipo))))),
+      h('div', { class: 'toolbar no-print', style: 'margin-bottom:1rem;display:flex;gap:.6rem;align-items:center' },
+        session.can('reportes:exportar') && h('a', { class: 'btn btn-ok', href: `/api/reportes/${reporte.id_reporte}/csv` }, 'Exportar CSV (Excel)'),
+        h('button', { type: 'button', class: 'btn btn-warn', onclick: () => window.print() }, 'Imprimir')),
       tablaDatos({
         columns: columnas.map((c) => ({
           label: c.label,
@@ -51,7 +47,7 @@ export async function render(contenedor) {
       }));
 
     abrirModal({
-      titulo: `📊 ${titulo} #${reporte.id_reporte}`,
+      titulo: `${titulo} #${reporte.id_reporte}`,
       contenido: contenidoModal,
       ancho: true,
     });
@@ -71,7 +67,7 @@ export async function render(contenedor) {
         rows: filas,
         vacio: 'Aún no se han generado reportes',
         acciones: (r) => [
-          boton('👁 Ver', 'btn-info', async () => {
+          boton('Ver', 'btn-info', async () => {
             try {
               mostrarEnModal(await api.get(`/reportes/${r.id_reporte}`));
             } catch (e) {
@@ -80,7 +76,7 @@ export async function render(contenedor) {
             }
           }),
           session.can('reportes:exportar') &&
-            h('a', { class: 'btn btn-sm btn-ok', href: `/api/reportes/${r.id_reporte}/csv` }, '📥 CSV'),
+            h('a', { class: 'btn btn-sm btn-ok', href: `/api/reportes/${r.id_reporte}/csv` }, 'CSV'),
         ],
       }));
     } catch (err) {
@@ -90,7 +86,7 @@ export async function render(contenedor) {
 
   // ---- Formulario para generar ----
   const tipo   = h('select', { id: 'tipo', 'aria-label': 'Tipo de reporte' },
-    TIPOS.map((t) => h('option', { value: t.value }, `${t.icono} ${t.label}`)));
+    TIPOS.map((t) => h('option', { value: t.value }, t.label)));
   const inicio = h('input', { id: 'inicio', type: 'date', value: `${hoyISO().slice(0, 8)}01` });
   const fin    = h('input', { id: 'fin',    type: 'date', value: hoyISO() });
 
@@ -104,10 +100,10 @@ export async function render(contenedor) {
   tipo.addEventListener('change', actualizarCampos);
   actualizarCampos();
 
-  const generar = h('button', { type: 'submit', class: 'btn btn-ok' }, '📊 Generar reporte');
+  const generar = h('button', { type: 'submit', class: 'btn btn-ok' }, 'Generar reporte');
 
-  const form = h('form', { class: 'reporte-panel', novalidate: true },
-    h('h2', { style: 'margin-top:0' }, '⚙️ Generar nuevo reporte'),
+  const form = h('form', { class: 'reporte-panel no-print', novalidate: true },
+    h('h2', { style: 'margin-top:0' }, 'Generar nuevo reporte'),
     h('div', { class: 'field', style: 'max-width:400px' },
       h('label', { for: 'tipo' }, 'Tipo de reporte'),
       tipo),
@@ -117,7 +113,7 @@ export async function render(contenedor) {
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     generar.disabled = true;
-    generar.textContent = '⏳ Generando…';
+    generar.textContent = 'Generando…';
     try {
       const cuerpo = { tipo_reporte: tipo.value };
       if (!camposFecha.hidden) Object.assign(cuerpo, { fecha_inicio: inicio.value, fecha_fin: fin.value });
@@ -130,16 +126,17 @@ export async function render(contenedor) {
       swalError('Error al generar reporte', err.message);
     } finally {
       generar.disabled = false;
-      generar.textContent = '📊 Generar reporte';
+      generar.textContent = 'Generar reporte';
     }
   });
 
   contenedor.replaceChildren(
-    h('h1', {}, '📊 Reportes'),
-    h('div', { class: 'reportes-grid' },
-      form,
-      h('div', { class: 'reporte-panel no-print' },
-        h('h2', { style: 'margin-top:0' }, '🕑 Historial de reportes'),
-        historial)));
+    h('h1', {}, 'Reportes'),
+    form,
+    h('div', { class: 'reporte-panel no-print', style: 'margin-top:1.5rem' },
+      h('h2', { style: 'margin-top:0' }, 'Historial de reportes generados'),
+      historial)
+  );
+
   await cargarHistorial();
 }

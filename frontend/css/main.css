@@ -203,7 +203,8 @@ a { color: var(--azul); }
   color: #fff; font-weight: 700;
   box-shadow: 0 3px 12px rgba(192,84,46,.4);
 }
-.nav-icon { font-size: 1rem; width: 1.25rem; text-align: center; flex-shrink: 0; }
+.nav-icon { font-size: 1rem; width: 1.25rem; text-align: center; flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center; }
+.nav-img  { width: 20px; height: 20px; object-fit: contain; flex-shrink: 0; }
 
 .sidebar-footer {
   padding: .9rem .75rem;
@@ -300,7 +301,11 @@ a { color: var(--azul); }
 }
 .card-link:hover { transform: translateY(-4px); box-shadow: var(--sombra-md); border-color: var(--verde-100); }
 .card-link:hover::before { height: 6px; background: linear-gradient(90deg, var(--tierra), var(--tierra-l)); }
-.card-icon { font-size: 2rem; margin-bottom: .25rem; }
+.card-icon {
+  display: flex; align-items: center;
+  font-size: 2rem; margin-bottom: .35rem; min-height: 44px;
+}
+.card-icon .card-img { width: 44px; height: 44px; object-fit: contain; }
 .card-link h2 { margin: 0; font-size: 1rem; font-weight: 700; color: var(--verde-900); }
 .card-link p  { margin: 0; color: var(--gris); font-size: .87rem; line-height: 1.4; }
 
@@ -337,16 +342,36 @@ input:focus, select:focus, textarea:focus {
 .table th {
   text-align: left;
   background: linear-gradient(180deg, var(--verde-50), var(--verde-100));
-  color: var(--verde-900); padding: .7rem 1rem;
+  color: var(--verde-900); padding: .85rem 1.25rem;
   white-space: nowrap; font-weight: 700; font-size: .82rem;
   text-transform: uppercase; letter-spacing: .04em;
   border-bottom: 2px solid var(--verde-100);
 }
-.table td { padding: .65rem 1rem; border-top: 1px solid var(--linea-l); vertical-align: middle; }
+.table td { padding: .8rem 1.25rem; border-top: 1px solid var(--linea-l); vertical-align: middle; }
 .table tbody tr { transition: background .1s; }
 .table tbody tr:hover { background: var(--verde-50); }
 .num { text-align: right !important; font-variant-numeric: tabular-nums; }
-.row-actions { display: flex; gap: .35rem; flex-wrap: wrap; }
+.table th.col-acciones, .table td.col-acciones {
+  white-space: nowrap;
+  text-align: right;
+  width: auto;
+}
+.table td.col-acciones .row-actions {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
+  gap: .5rem;
+}
+.row-actions {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: .5rem;
+  white-space: nowrap;
+}
 .empty {
   padding: 2.5rem; text-align: center; color: var(--gris);
   background: var(--papel); border: 2px dashed var(--linea-l);
@@ -392,18 +417,53 @@ input:focus, select:focus, textarea:focus {
   padding: 1rem; z-index: 50; overflow-y: auto;
 }
 .modal {
-  background: var(--papel); border-radius: var(--radio-lg);
-  padding: 1.75rem; width: min(540px, 100%);
+  background: var(--papel);
+  border-radius: 20px;
+  border-top-right-radius: 20px;
+  border-bottom-right-radius: 20px;
+  padding: 1.85rem; width: min(560px, 100%);
   max-height: 92vh; overflow-y: auto;
+  border: 1px solid var(--linea-l);
   border-top: 5px solid var(--verde-700);
   box-shadow: var(--sombra-lg);
   animation: modalEntrada .2s ease-out;
+  position: relative;
 }
-.modal h2 { margin-top: 0; }
+.modal h2 { margin-top: 0; padding-right: 2.5rem; font-size: 1.35rem; }
 
-/* Modal de reporte (más ancho) */
+/* Botón cerrar X estético */
+.modal-close {
+  position: absolute;
+  top: 1.1rem;
+  right: 1.1rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid var(--linea-l);
+  background: var(--fondo);
+  color: var(--gris);
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .2s cubic-bezier(.4,0,.2,1);
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  line-height: 1;
+  z-index: 2;
+}
+.modal-close:hover {
+  background: #fde8e6;
+  color: #c0392b;
+  border-color: #f5bab6;
+  transform: rotate(90deg) scale(1.08);
+  box-shadow: 0 3px 8px rgba(192,57,43,.18);
+}
+
+/* Modal de reporte o detalle (más ancho) */
 .modal-reporte {
-  width: min(900px, 100%); max-height: 90vh;
+  width: min(920px, 100%); max-height: 90vh;
 }
 
 @keyframes modalEntrada {
@@ -466,8 +526,17 @@ input:focus, select:focus, textarea:focus {
   width: 200px; height: 200px; border-radius: 50%;
   background: rgba(255,255,255,.05); pointer-events: none;
 }
-.home-hero-text h1 { color: #fff; margin-bottom: .25rem; }
+.home-hero-text h1 { color: #fff; margin-bottom: .25rem; font-size: 1.6rem; font-weight: 800; }
 .home-hero-text p  { color: rgba(255,255,255,.75); margin: 0; font-size: .95rem; }
+.home-hero-logo {
+  width: 76px; height: 76px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3.5px solid rgba(255,255,255,.5);
+  box-shadow: 0 4px 16px rgba(0,0,0,.25);
+  background: #fff;
+  flex-shrink: 0;
+}
 
 /* ---------- Responsivo ---------- */
 .nav-fondo { display: none; }
@@ -540,13 +609,30 @@ img, video { max-width: 100%; height: auto; }
 
 /* ---------- Impresión ---------- */
 @media print {
-  body { background: #fff; }
+  body { background: #fff !important; color: #000 !important; }
   .table tr[hidden] { display: table-row !important; }
-  .sidebar, .topbar, .no-print, .col-acciones, .pager, .toasts, .menu-btn { display: none !important; }
+  .sidebar, .topbar, .no-print, .col-acciones, .pager, .toasts, .menu-btn, .modal-close { display: none !important; }
   .app { display: block; }
   .contenido { padding: 0; max-width: none; }
   .table-wrap { border: 0; overflow: visible; box-shadow: none; }
   .table th { background: #eee !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .modal-overlay {
+    position: static !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    display: block !important;
+    overflow: visible !important;
+  }
+  .modal {
+    position: static !important;
+    box-shadow: none !important;
+    border: none !important;
+    max-height: none !important;
+    width: 100% !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
 }
 
 /* ---------- SweetAlert2 overrides ---------- */

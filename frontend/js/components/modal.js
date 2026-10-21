@@ -7,12 +7,10 @@ export function abrirModal({ titulo, contenido, ancho = false, alCerrar }) {
   const btnCerrar = h('button', {
     type: 'button',
     class: 'modal-close',
-    'aria-label': 'Cerrar',
-    style: 'position:absolute;top:.9rem;right:1rem;background:none;border:0;font-size:1.4rem;cursor:pointer;color:#6b7266;line-height:1;padding:.2rem;border-radius:6px;transition:background .15s',
+    'aria-label': 'Cerrar ventana modal',
+    title: 'Cerrar',
+    onclick: () => close(),
   }, '✕');
-  btnCerrar.addEventListener('mouseenter', () => { btnCerrar.style.background = 'rgba(0,0,0,.07)'; });
-  btnCerrar.addEventListener('mouseleave', () => { btnCerrar.style.background = ''; });
-  btnCerrar.onclick = () => close();
 
   const modalEl = h('div', {
     class: `modal${ancho ? ' modal-reporte' : ''}`,

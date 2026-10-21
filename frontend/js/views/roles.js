@@ -23,7 +23,7 @@ export async function render(contenedor) {
           { label: 'Usuarios', key: 'total_usuarios' },
         ],
         rows: roles,
-        acciones: (r) => [session.can('roles:modificar') && boton('✏️ Modificar', 'btn-info', () => renombrar(r))],
+        acciones: (r) => [session.can('roles:modificar') && boton('Modificar', 'btn-info', () => renombrar(r))],
       }));
 
       zonaUsuarios.replaceChildren(tablaDatos({
@@ -80,15 +80,15 @@ export async function render(contenedor) {
         await cargar();
       },
     });
-    modal = abrirModal({ titulo: '🛡️ Modificar rol', contenido: f.el });
+    modal = abrirModal({ titulo: 'Modificar rol', contenido: f.el });
   }
 
   contenedor.replaceChildren(
-    h('h1', {}, '🛡️ Gestión de Roles'),
+    h('h1', {}, 'Gestión de Roles'),
     h('div', { class: 'toolbar no-print', style: 'margin-bottom:1.25rem;' },
       h('p', { class: 'muted', style: 'margin:0;flex:1' }, 'Administra los roles del sistema y asigna cargos a los usuarios.'),
     ),
-    h('h2', {}, '📋 Roles del sistema'), zonaRoles,
-    h('h2', {}, '🔄 Asignar rol a los usuarios'), zonaUsuarios);
+    h('h2', {}, 'Roles del sistema'), zonaRoles,
+    h('h2', {}, 'Asignar rol a los usuarios'), zonaUsuarios);
   await cargar();
 }

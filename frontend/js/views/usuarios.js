@@ -26,14 +26,21 @@ export async function render(contenedor) {
         vacio: 'No se encontraron usuarios',
         acciones: (u) => {
           const yo = u.id_usuario === session.user.id_usuario;
-          return [
-            session.can('usuarios:editar')   && boton('✏️ Editar', 'btn-info',   () => formulario(u)),
-            !yo && session.can('usuarios:bloquear') && boton(
-              u.estado === 'activo' ? '🚫 Bloquear' : '✅ Desbloquear',
+          const acts = [];
+          if (session.can('usuarios:editar')) {
+            acts.push(boton('Editar', 'btn-info', () => formulario(u)));
+          }
+          if (!yo && session.can('usuarios:bloquear')) {
+            acts.push(boton(
+              u.estado === 'activo' ? 'Bloquear' : 'Desbloquear',
               'btn-warn',
-              () => cambiarEstado(u)),
-            !yo && session.can('usuarios:eliminar') && boton('🗑 Eliminar', 'btn-danger', () => eliminar(u)),
-          ];
+              () => cambiarEstado(u)
+            ));
+          }
+          if (!yo && session.can('usuarios:eliminar')) {
+            acts.push(boton('Eliminar', 'btn-danger', () => eliminar(u)));
+          }
+          return acts;
         },
       }));
     } catch (err) {
@@ -82,14 +89,14 @@ export async function render(contenedor) {
         await cargar();
       },
     });
-    modal = abrirModal({ titulo: usuario ? '✏️ Modificar usuario' : '👤 Agregar nuevo usuario', contenido: f.el });
+    modal = abrirModal({ titulo: usuario ? 'Modificar usuario' : 'Agregar nuevo usuario', contenido: f.el });
   }
 
   async function cambiarEstado(u) {
     const nuevo = u.estado === 'activo' ? 'bloqueado' : 'activo';
     const accion = nuevo === 'bloqueado' ? 'bloquear' : 'desbloquear';
     const ok = await swalConfirmar({
-      titulo: nuevo === 'bloqueado' ? '🚫 Bloquear usuario' : '✅ Desbloquear usuario',
+      titulo: nuevo === 'bloqueado' ? 'Bloquear usuario' : 'Desbloquear usuario',
       mensaje: `¿Desea ${accion} al usuario "${u.nombre_usuario}"?`,
       textoOk: nuevo === 'bloqueado' ? 'Sí, bloquear' : 'Sí, desbloquear',
       peligro: nuevo === 'bloqueado',
@@ -111,7 +118,7 @@ export async function render(contenedor) {
 
   async function eliminar(u) {
     const ok = await swalConfirmar({
-      titulo: '🗑 Eliminar usuario',
+      titulo: 'Eliminar usuario',
       mensaje: `¿Desea eliminar al usuario "${u.nombre_usuario}"? Esta acción no se puede deshacer.`,
       textoOk: 'Sí, eliminar',
       peligro: true,
@@ -128,15 +135,15 @@ export async function render(contenedor) {
     }
   }
 
-  const buscador = h('input', { type: 'search', placeholder: '🔍 Buscar por usuario o cargo', 'aria-label': 'Buscar usuario' });
+  const buscador = h('input', { type: 'search', placeholder: 'Buscar por usuario o cargo', 'aria-label': 'Buscar usuario' });
   contenedor.replaceChildren(
-    h('h1', {}, '👤 Gestión de Usuarios'),
+    h('h1', {}, 'Gestión de Usuarios'),
     h('form', { class: 'toolbar no-print', onsubmit: (e) => { e.preventDefault(); q = buscador.value.trim(); cargar(); } },
       buscador,
-      h('button', { type: 'submit', class: 'btn btn-warn' }, '🔍 Buscar'),
-      session.can('usuarios:crear') && h('button', { type: 'button', class: 'btn btn-ok', onclick: () => formulario(null) }, '+ Agregar usuario'),
+      h('button', { type: 'submit', class: 'btn btn-warn' }, 'Buscar'),
+      session.can('usuarios:crear') && h('button', { type: 'button', class: 'btn btn-ok', onclick: () => formulario(null) }, 'Agregar usuario'),
       h('div', { class: 'toolbar-sep' }),
-      h('button', { type: 'button', class: 'btn btn-ghost', onclick: () => window.print() }, '🖨 Imprimir')),
+      h('button', { type: 'button', class: 'btn btn-warn', onclick: () => window.print() }, 'Imprimir lista')),
     zona);
   await cargar();
 }

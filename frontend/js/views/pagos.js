@@ -40,9 +40,10 @@ export async function render(contenedor) {
             class: 'btn btn-sm btn-warn',
             href: `/api/pagos/${p.id_pago}/comprobante`,
             target: '_blank', rel: 'noopener',
-          }, '📄 Comprobante'),
-          session.can('pagos:editar')   && boton('✏️ Modificar', 'btn-info',   () => formularioEdicion(p)),
-          session.can('pagos:eliminar') && boton('🗑 Eliminar',  'btn-danger', () => eliminar(p)),
+          }, 'Comprobante'),
+          boton('Ver', 'btn-secondary', () => verDetalle(p)),
+          session.can('pagos:editar')   && boton('Modificar', 'btn-info',   () => formularioEdicion(p)),
+          session.can('pagos:eliminar') && boton('Eliminar',  'btn-danger', () => eliminar(p)),
         ],
       }));
       const desde = r.total ? (filtro.page - 1) * TAMANO + 1 : 0;
@@ -57,6 +58,34 @@ export async function render(contenedor) {
     } catch (err) {
       swalError('Error al cargar pagos', err.message);
     }
+  }
+
+  // Ver detalle de un pago en modal
+  function verDetalle(p) {
+    const contenido = h('div', { class: 'detalle-pago' },
+      h('div', { class: 'chips', style: 'margin-bottom:1rem' },
+        h('span', { class: 'chip chip-grande' }, 'Folio: ', h('strong', {}, folio(p.id_pago))),
+        h('span', { class: 'chip chip-grande' }, 'Fecha: ', h('strong', {}, fecha(p.fecha))),
+        h('span', { class: 'chip chip-grande' }, 'Habitante: ', h('strong', {}, p.nombre_completo)),
+        h('span', { class: 'chip chip-grande' }, 'Concepto: ', h('strong', {}, p.concepto)),
+        h('span', { class: 'chip chip-grande' }, 'Monto pagado: ', h('strong', {}, money(p.monto))),
+        h('span', { class: 'chip chip-grande' }, 'Adeudo asociado: ', h('strong', {}, p.id_adeudo ? `#${p.id_adeudo}` : 'Ninguno (aportación libre)')),
+        h('span', { class: 'chip chip-grande' }, 'Registrado por: ', h('strong', {}, p.registrado_por || 'Sistema'))),
+      p.observaciones ? h('div', { style: 'margin-top:1rem;background:var(--fondo);padding:.75rem 1rem;border-radius:8px' },
+        h('strong', {}, 'Observaciones: '),
+        h('span', {}, p.observaciones)) : null,
+      h('div', { class: 'form-actions', style: 'margin-top:1.5rem' },
+        session.can('pagos:comprobante') && h('a', {
+          class: 'btn btn-warn',
+          href: `/api/pagos/${p.id_pago}/comprobante`,
+          target: '_blank', rel: 'noopener',
+        }, 'Ver comprobante PDF'))
+    );
+
+    abrirModal({
+      titulo: `Detalle del Pago ${folio(p.id_pago)}`,
+      contenido,
+    });
   }
 
   // ----- Registrar pago -----
@@ -99,14 +128,14 @@ export async function render(contenedor) {
           const ver = await swalConfirmar({
             titulo: '¿Abrir comprobante?',
             mensaje: `Folio ${folio(pago.id_pago)}. ¿Desea abrir el comprobante ahora?`,
-            textoOk: '📄 Ver comprobante',
+            textoOk: 'Ver comprobante',
             textoCancelar: 'Ahora no',
           });
           if (ver) window.open(`/api/pagos/${pago.id_pago}/comprobante`, '_blank');
         }
       },
     });
-    modal = abrirModal({ titulo: '💳 Agregar pago', contenido: f.el });
+    modal = abrirModal({ titulo: 'Agregar pago', contenido: f.el });
   }
 
   // ----- Modificar pago -----
@@ -130,13 +159,13 @@ export async function render(contenedor) {
         await cargar();
       },
     });
-    modal = abrirModal({ titulo: `✏️ Modificar ${folio(p.id_pago)} · ${p.nombre_completo}`, contenido: f.el });
+    modal = abrirModal({ titulo: `Modificar ${folio(p.id_pago)} · ${p.nombre_completo}`, contenido: f.el });
   }
 
   async function eliminar(p) {
     const extra = p.id_adeudo ? ' Se restará del adeudo asociado.' : '';
     const ok = await swalConfirmar({
-      titulo: '🗑 Eliminar pago',
+      titulo: 'Eliminar pago',
       mensaje: `¿Eliminar el pago ${folio(p.id_pago)} de ${p.nombre_completo}?${extra}`,
       textoOk: 'Sí, eliminar',
       peligro: true,
@@ -153,7 +182,7 @@ export async function render(contenedor) {
     }
   }
 
-  const q      = h('input', { type: 'search', placeholder: '🔍 Buscar por habitante, concepto o folio', 'aria-label': 'Buscar pago' });
+  const q      = h('input', { type: 'search', placeholder: 'Buscar por habitante, concepto o folio', 'aria-label': 'Buscar pago' });
   const desde  = h('input', { type: 'date', 'aria-label': 'Desde' });
   const hasta  = h('input', { type: 'date', 'aria-label': 'Hasta' });
   const limpiar = () => {
@@ -163,19 +192,19 @@ export async function render(contenedor) {
   };
 
   contenedor.replaceChildren(
-    h('h1', {}, '💳 Gestión de Pagos'),
+    h('h1', {}, 'Gestión de Pagos'),
     h('form', {
       class: 'toolbar no-print',
       onsubmit: (e) => { e.preventDefault(); Object.assign(filtro, { q: q.value.trim(), desde: desde.value, hasta: hasta.value, page: 1 }); cargar(); },
     },
       q,
-      h('label', { class: 'inline' }, '📅 Desde', desde),
+      h('label', { class: 'inline' }, 'Desde', desde),
       h('label', { class: 'inline' }, 'Hasta', hasta),
-      h('button', { type: 'submit', class: 'btn btn-warn' }, '🔍 Buscar'),
-      h('button', { type: 'button', class: 'btn btn-ghost', onclick: limpiar }, '✕ Quitar filtros'),
-      session.can('pagos:crear') && h('button', { type: 'button', class: 'btn btn-ok', onclick: formularioNuevo }, '+ Agregar pago'),
+      h('button', { type: 'submit', class: 'btn btn-warn' }, 'Buscar'),
+      h('button', { type: 'button', class: 'btn btn-ghost', onclick: limpiar }, 'Quitar filtros'),
+      session.can('pagos:crear') && h('button', { type: 'button', class: 'btn btn-ok', onclick: formularioNuevo }, 'Agregar pago'),
       h('div', { class: 'toolbar-sep' }),
-      h('button', { type: 'button', class: 'btn btn-ghost', onclick: () => window.print() }, '🖨 Imprimir')),
+      h('button', { type: 'button', class: 'btn btn-warn', onclick: () => window.print() }, 'Imprimir lista')),
     resumen, zona, paginador);
   await cargar();
 }

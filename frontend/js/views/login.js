@@ -5,16 +5,16 @@ export function render(raiz, { alIngresar }) {
   const error = h('div', { class: 'form-error', role: 'alert', hidden: true });
   const usuario = h('input', { id: 'usuario', name: 'usuario', type: 'text', autocomplete: 'username', required: true, maxlength: 50, placeholder: 'Tu nombre de usuario' });
   const clave = h('input', { id: 'clave', name: 'clave', type: 'password', autocomplete: 'current-password', required: true, maxlength: 72, placeholder: '••••••••' });
-  const boton = h('button', { type: 'submit', class: 'btn btn-primary btn-block' }, '🔐 Iniciar sesión');
+  const boton = h('button', { type: 'submit', class: 'btn btn-primary btn-block' }, 'Iniciar sesión');
 
   const form = h('form', { class: 'login-card', novalidate: true },
     h('div', { class: 'login-logo-wrap' },
       h('img', { src: '/img/logo.svg', alt: 'Logo de la asamblea' }),
       h('h1', {}, 'Asamblea Comunitaria'),
-      h('span', { class: 'login-badge' }, '🌿 San Juan Teponaxtla')),
+      h('span', { class: 'login-badge' }, 'San Juan Teponaxtla')),
     h('p', { class: 'login-subtitle' }, 'Sistema de Gestión de Pagos Comunitarios · Acceso autorizado'),
-    h('div', { class: 'field' }, h('label', { for: 'usuario' }, '👤 Usuario'), usuario),
-    h('div', { class: 'field' }, h('label', { for: 'clave' }, '🔑 Contraseña'), clave),
+    h('div', { class: 'field' }, h('label', { for: 'usuario' }, 'Usuario'), usuario),
+    h('div', { class: 'field' }, h('label', { for: 'clave' }, 'Contraseña'), clave),
     error, boton);
 
   form.addEventListener('submit', async (e) => {
@@ -47,7 +47,7 @@ export function render(raiz, { alIngresar }) {
       clave.focus();
     } finally {
       boton.disabled = false;
-      boton.textContent = '🔐 Iniciar sesión';
+      boton.textContent = 'Iniciar sesión';
     }
   });
 

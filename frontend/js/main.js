@@ -18,7 +18,7 @@ async function salir() {
       title: '¿Cerrar sesión?',
       text: '¿Desea salir del sistema?',
       showCancelButton: true,
-      confirmButtonText: '🚪 Sí, salir',
+      confirmButtonText: 'Sí, salir',
       cancelButtonText: 'Cancelar',
       confirmButtonColor: '#c0261e',
       cancelButtonColor: '#6b7266',
