@@ -23,6 +23,6 @@ export const RUTAS = [
     descripcion: 'Registrar, editar, bloquear y eliminar usuarios del sistema.' },
   { path: '/roles', titulo: 'Gestión de Roles', permiso: 'roles:leer', nav: true, view: roles.render,
     descripcion: 'Asignar y modificar los roles de los usuarios.' },
-  { path: '/configuracion', titulo: 'Configurar Sistema', permiso: 'sistema:configurar', nav: true, view: configuracion.render,
+  { path: '/configuracion', titulo: 'Configurar Sistema', permiso: 'sistema:configurar', nav: true, esConfig: true, view: configuracion.render,
     descripcion: 'Datos de la comunidad que aparecen en el sistema y en los comprobantes.' },
 ];

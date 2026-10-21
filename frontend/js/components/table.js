@@ -2,6 +2,7 @@ import { h } from '../core/dom.js';
 
 const ETIQUETAS = { pendiente: 'Pendiente', parcial: 'Parcial', pagado: 'Pagado', activo: 'Activo', bloqueado: 'Bloqueado' };
 export const POR_PAGINA = 10;
+export const OPCIONES_PAGINA = [5, 10, 20];
 
 export const insignia = (estado) => h('span', { class: `badge badge-${estado}` }, ETIQUETAS[estado] || estado);
 
@@ -18,10 +19,9 @@ function numerosDePagina(actual, total) {
 }
 
 /**
- * Tabla de datos con paginación en el navegador (10 registros por página).
+ * Tabla de datos con paginación en el navegador y selector de registros por página.
  * columns: [{ label, key, render:(fila)=>Node|string, align:'right' }]
  * acciones: (fila) => Node[]   (columna de botones; se oculta al imprimir)
- * Al imprimir se incluyen todas las filas, no solo las de la página visible.
  */
 export function tablaDatos({ columns, rows, acciones, vacio = 'No hay registros para mostrar', porPagina = POR_PAGINA }) {
   if (!rows.length) return h('p', { class: 'empty' }, vacio);
@@ -38,31 +38,45 @@ export function tablaDatos({ columns, rows, acciones, vacio = 'No hay registros 
       h('tbody', {}, filas)));
 
   const total = rows.length;
-  const paginas = Math.ceil(total / porPagina);
-  if (paginas <= 1) return tabla;
+  let tamano  = porPagina;
+  let paginas = Math.ceil(total / tamano);
 
-  const barra = h('nav', { class: 'pager no-print', 'aria-label': 'Paginación' });
-  let actual = 1;
+  // Si solo hay 1 página con el tamaño actual, aún mostramos el selector de registros
+  // (para que el usuario pueda cambiar a menos registros por página si quiere).
+  // Pero si hay menos registros que el mínimo posible (5), simplemente mostramos la tabla.
+  if (total <= 5) return tabla;
 
-  function mostrar(n) {
-    actual = Math.min(Math.max(1, n), paginas);
-    const desde = (actual - 1) * porPagina;
-    filas.forEach((tr, i) => { tr.hidden = i < desde || i >= desde + porPagina; });
-    const hasta = Math.min(desde + porPagina, total);
+  const barra  = h('nav', { class: 'pager no-print', 'aria-label': 'Paginación' });
+  let actual   = 1;
+
+  function mostrar(n, nuevoTamano) {
+    if (nuevoTamano !== undefined) { tamano = nuevoTamano; }
+    const totalPaginas = Math.ceil(total / tamano);
+    actual = Math.min(Math.max(1, n), totalPaginas);
+    const desde = (actual - 1) * tamano;
+    filas.forEach((tr, i) => { tr.hidden = i < desde || i >= desde + tamano; });
+    const hasta = Math.min(desde + tamano, total);
 
     const btn = (texto, destino, extra = {}) =>
       h('button', { type: 'button', class: `btn btn-sm btn-ghost${extra.actual ? ' pag-actual' : ''}`, disabled: extra.off, 'aria-current': extra.actual ? 'page' : undefined, 'aria-label': extra['aria-label'], onclick: () => mostrar(destino) }, texto);
 
+    // Selector de registros por página
+    const selector = h('select', { 'aria-label': 'Registros por página', style: 'padding:.28rem .5rem;font-size:.82rem;' },
+      OPCIONES_PAGINA.map((op) => h('option', { value: op, selected: op === tamano }, `${op} por página`)));
+    selector.addEventListener('change', () => mostrar(1, Number(selector.value)));
+
     barra.replaceChildren(
-      h('span', { class: 'pager-info' }, `Mostrando ${desde + 1}–${hasta} de ${total}`),
+      h('div', { class: 'registros-selector' },
+        h('span', {}, `${desde + 1}–${hasta} de ${total}`),
+        selector),
       h('div', { class: 'pager-botones' },
         btn('‹ Anterior', actual - 1, { off: actual === 1 }),
-        numerosDePagina(actual, paginas).map((n) => (n === '…'
+        numerosDePagina(actual, totalPaginas).map((n) => (n === '…'
           ? h('span', { class: 'pager-gap' }, '…')
           : btn(String(n), n, { actual: n === actual, 'aria-label': `Página ${n}` }))),
-        btn('Siguiente ›', actual + 1, { off: actual === paginas })));
+        btn('Siguiente ›', actual + 1, { off: actual === totalPaginas })));
   }
-  mostrar(1);
+  mostrar(1, tamano);
   return h('div', {}, tabla, barra);
 }
 

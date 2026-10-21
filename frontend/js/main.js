@@ -12,6 +12,19 @@ const raiz = document.getElementById('app');
 const irA = (ruta) => { location.hash = `#${ruta}`; };
 
 async function salir() {
+  if (window.Swal) {
+    const r = await Swal.fire({
+      icon: 'question',
+      title: '¿Cerrar sesión?',
+      text: '¿Desea salir del sistema?',
+      showCancelButton: true,
+      confirmButtonText: '🚪 Sí, salir',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#c0261e',
+      cancelButtonColor: '#6b7266',
+    });
+    if (!r.isConfirmed) return;
+  }
   detenerInactividad();
   await session.cerrar();
   irA('/login');
